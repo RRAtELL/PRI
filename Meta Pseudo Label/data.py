@@ -154,4 +154,109 @@ def x_u_split(args, labels):
         np.random.shuffle(labeled_idx)
         return labeled_idx, unlabeled_idx, labeled_idx
 
-# https://github.com/kekmodel/MPL-pytorch/blob/main/data.py
+
+def x_u_split_test(args, labels):
+    label_per_class = args.num_labeled // args.num_classes
+    labels = np.array(labels)
+    labeled_idx = []
+    unlabeled_idx = []
+    for i in range(args.num_classes):
+        idx = np.where(labels == i)[0]
+        np.random.shuffle(idx)
+        labeled_idx.extend(idx[:label_per_class])
+        unlabeled_idx.extend(idx[label_per_class:])
+    labeled_idx = np.array(labeled_idx)
+    unlabeled_idx = np.array(unlabeled_idx)
+    assert len(labeled_idx) == args.num_labeled
+
+    if args.expand_labels or args.num_labeled < args.batch_size:
+        num_expand_x = math.ceil(
+            args.batch_size * args.eval_step / args.num_labeled)
+        labeled_idx = np.hstack([labeled_idx for _ in range(num_expand_x)])
+
+    np.random.shuffle(labeled_idx)
+    np.random.shuffle(unlabeled_idx)
+
+    return labeled_idx, unlabeled_idx
+
+
+class TransformMPL(object):
+    def __init__(self, args, mean, std):
+        if args.randaug:
+            n, m = args.randaug
+        else:
+            n, m = 2, 10
+
+        self.ori = transforms.Compose([
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomCrop(size=args.resize,
+                                  padding=int(args.resize * 0.125,
+                                              fill=128,
+                                              padding_mode="constant"))
+        ])
+
+        self.aug = transforms.Compose([
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomCrop(size=args.resize,
+                                  padding=int(args.resize * 0.125),
+                                  fill=128,
+                                  padding_mode="constant"),
+            RandAugmentCIFAR(n=n, m=m)
+        ])
+
+        self.normalize = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(mean=mean, std=std)
+        ])
+
+    def __call__(self, x):
+        ori = self.ori(x)
+        aug = self.aug(x)
+
+        return self.normalize(ori), self.normalize(aug)
+
+    class CIFAR10SSL(datasets.CIFAR10):
+        def __init__(self, root, indexs, train=True, transform=None, target_transform=None, download=False):
+            super().__init__(root, train=train, transform=transform,
+                             target_transform=target_transform, download=download)
+
+            if indexs is not None:
+                self.data = self.data[indexs]
+                self.targets = np.array(self.targets)[indexs]
+
+        def __getitem__(self, index):
+            img, target = self.data[index], self.targets[index]
+            img = Image.fromarray(img)
+
+            if self.transform is not None:
+                img = self.transform(img)
+
+            if self.target_transform is not None:
+                target = self.target_transform(target)
+
+            return img, target
+    class CIFAR100SSL(datasets.CIFAR100):
+        def __init__(self, root, indexs, train=True,
+                 transform=None, target_transform=None,
+                 download=False):
+            super().__init__(root, train=train,
+                         transform=transform,
+                         target_transform=target_transform,
+                         download=download)
+            if indexs is not None:
+                self.data = self.data[indexs]
+                self.targets = np.array(self.targets)[indexs]
+
+        def __getitem__(self, index):
+            img, target = self.data[index], self.targets[index]
+            img = Image.fromarray(img)
+
+            if self.transform is not None:
+                img = self.transform(img)
+
+            if self.target_transform is not None:
+                target = self.target_transform(target)
+
+            return img, target
+
+DATASET_GETTERS = {"cifar10" : get_cifar10, "cifar100" : get_cifar100}
