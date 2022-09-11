@@ -6,3 +6,4 @@ Paper Reading and Implementation
 3. DenseNet
 4. EfficientNet
 5. Meta Pseudo Label
+6. Vision Transformer
