@@ -7,3 +7,4 @@ Paper Reading and Implementation
 4. EfficientNet
 5. Meta Pseudo Label
 6. Vision Transformer
+7. Efficient Adaptive Ensembling
