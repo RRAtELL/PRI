@@ -8,3 +8,4 @@ Paper Reading and Implementation
 5. Meta Pseudo Label
 6. Vision Transformer
 7. Efficient Adaptive Ensembling
+8. Yolo
