@@ -10,3 +10,4 @@ Paper Reading and Implementation
 7. Efficient Adaptive Ensembling
 8. Yolo
 9. Mask R-CNN
+10. Naive GAN
