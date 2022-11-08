@@ -9,3 +9,4 @@ Paper Reading and Implementation
 6. Vision Transformer
 7. Efficient Adaptive Ensembling
 8. Yolo
+9. Mask R-CNN
