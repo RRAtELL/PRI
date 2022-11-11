@@ -187,3 +187,4 @@ for epoch in range(opt.n_epochs):
                        batches_done, nrow=5, normalize=True)
 
 # https://github.com/eriklindernoren/PyTorch-GAN/blob/master/implementations/gan/gan.py
+# GAN
